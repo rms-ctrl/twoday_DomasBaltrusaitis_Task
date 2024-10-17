@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Container;
 
-use App\Database\DBConnection;
+use App\Controllers\WordController;
+use App\Database\DatabaseConnection;
 use App\Database\QueryBuilder\MySqlQueryBuilder;
 use App\Logger\Handler\LogHandler;
 use App\Logger\Logger;
@@ -41,7 +42,7 @@ class DependencyConfigurator
         });
 
         $dependencyContainer->set('database', function(): \PDO {
-            return DBConnection::tryConnect();
+            return DatabaseConnection::tryConnect();
         });
 
         $dependencyContainer->set('mySqlQueryBuilder', function(): MySqlQueryBuilder {
@@ -54,32 +55,32 @@ class DependencyConfigurator
 
         $dependencyContainer->set('wordRepository', function(DependencyContainer $dependencyContainer): WordRepository {
             $mySqlQueryBuilder = $dependencyContainer->get('mySqlQueryBuilder');
-            $dbConnection = $dependencyContainer->get('database');
-            $logger = $dependencyContainer->get('logger');
+            $databaseConnection = $dependencyContainer->get('database');
 
-            return new WordRepository($mySqlQueryBuilder, $dbConnection, $logger);
+            return new WordRepository($mySqlQueryBuilder, $databaseConnection);
         });
 
         $dependencyContainer->set('selectedSyllableRepository', function(DependencyContainer $dependencyContainer): SelectedSyllableRepository {
             $mySqlQueryBuilder = $dependencyContainer->get('mySqlQueryBuilder');
-            $dbConnection = $dependencyContainer->get('database');
+            $databaseConnection = $dependencyContainer->get('database');
 
-            return new SelectedSyllableRepository($mySqlQueryBuilder, $dbConnection);
+            return new SelectedSyllableRepository($mySqlQueryBuilder, $databaseConnection);
         });
+
 
         $dependencyContainer->set('hyphenatedWordRepository', function(DependencyContainer $dependencyContainer): HyphenatedWordRepository {
             $mySqlQueryBuilder = $dependencyContainer->get('mySqlQueryBuilder');
-            $dbConnection = $dependencyContainer->get('database');
+            $databaseConnection = $dependencyContainer->get('database');
 
-            return new HyphenatedWordRepository($mySqlQueryBuilder, $dbConnection);
+            return new HyphenatedWordRepository($mySqlQueryBuilder, $databaseConnection);
         });
 
         $dependencyContainer->set('syllableRepository', function(DependencyContainer $dependencyContainer): SyllableRepository {
             $mySqlQueryBuilder = $dependencyContainer->get('mySqlQueryBuilder');
-            $dbConnection = $dependencyContainer->get('database');
+            $databaseConnection = $dependencyContainer->get('database');
             $logger = $dependencyContainer->get('logger');
 
-            return new SyllableRepository($mySqlQueryBuilder, $dbConnection, $logger);
+            return new SyllableRepository($mySqlQueryBuilder, $databaseConnection, $logger);
         });
 
         $dependencyContainer->set('userInputService', function(DependencyContainer $dependencyContainer): UserInputService {
@@ -99,13 +100,13 @@ class DependencyConfigurator
             $hyphenatedWordRepository = $dependencyContainer->get('hyphenatedWordRepository');
             $syllableRepository = $dependencyContainer->get('syllableRepository');
             $selectedSyllableRepository = $dependencyContainer->get('selectedSyllableRepository');
-            $dbConnection = $dependencyContainer->get('database');
+            $databaseConnection = $dependencyContainer->get('database');
 
             return new TransactionService(
                 $hyphenatedWordRepository,
                 $syllableRepository,
                 $selectedSyllableRepository,
-                $dbConnection
+                $databaseConnection,
             );
         });
 
@@ -171,7 +172,7 @@ class DependencyConfigurator
                 $databaseParagraphHyphenationService,
                 $wordRepository,
                 $syllableRepository,
-                $hyphenatedWordRepository
+                $hyphenatedWordRepository,
             );
         });
 
@@ -185,6 +186,12 @@ class DependencyConfigurator
             $databaseParagraphHyphenationService = $dependencyContainer->get('databaseParagraphHyphenationService');
 
             return new BasicHyphenationManagementService($databaseParagraphHyphenationService);
+        });
+
+        $dependencyContainer->set('wordController', function(DependencyContainer $dependencyContainer) {
+            $wordRepository = $dependencyContainer->get('wordRepository');
+
+            return new WordController($wordRepository);
         });
     }
 }

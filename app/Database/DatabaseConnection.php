@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Database;
 
-class DBConnection
+class DatabaseConnection
 {
     public static function tryConnect(): ?\PDO
     {

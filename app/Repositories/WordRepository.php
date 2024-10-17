@@ -6,14 +6,12 @@ namespace App\Repositories;
 
 use App\Database\QueryBuilder\SqlQueryBuilder;
 use App\Entities\Word;
-use App\Logger\Logger;
 
 readonly class WordRepository
 {
     public function __construct(
         private SqlQueryBuilder $sqlQueryBuilder,
         private \PDO $connection,
-        private Logger $logger
     ) {
     }
 

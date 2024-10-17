@@ -4,15 +4,12 @@ declare(strict_types=1);
 
 namespace App;
 
-require_once 'Autoloader.php';
+require_once __DIR__.'/../vendor/autoload.php';
 
-use App\Controllers\WordController;
-use App\Database\DBConnection;
+use App\Container\DependencyConfigurator;
+use App\Container\DependencyContainer;
 use App\Enumerators\HttpMethods;
 use App\Exception\HttpException;
-use App\Logger\Handler\LogHandler;
-use App\Logger\Logger;
-use App\Repositories\WordRepository;
 use App\Routes\Route;
 use App\Routes\RouteManager;
 use App\Services\FileService;
@@ -21,20 +18,14 @@ class LocalServer
 {
     public function run(): void
     {
-        $loader = new Autoloader();
-        $loader->register();
-        $loader->addNamespace('App', __DIR__);
+        FileService::readEnvFile('/Server/var/.env');
 
-        FileService::readEnvFile('/var/.env');
-
-        $dbConnection = DBConnection::tryConnect();
-        $handler = new LogHandler('/var/app_log.txt');
-        $logger = new Logger($handler);
-        $wordRepository = new WordRepository($dbConnection, $logger);
+        $container = new DependencyContainer();
+        DependencyConfigurator::setAllDependencies($container);
 
         $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-        $wordController = new WordController($wordRepository);
+        $wordController = $container->get('wordController');
 
         $wordRoutes = [
             new Route(HttpMethods::GET, '/words', $wordController, 'getAll'),

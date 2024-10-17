@@ -132,7 +132,9 @@ class MySqlQueryBuilder implements SqlQueryBuilder
             $sql .= ' VALUES ' . implode(', ', $this->query->getValues());
         }
 
-        $sql .= ';';
+        if (!empty($this->query->getBase())) {
+            $sql .= ';';
+        }
 
         return $sql;
     }
